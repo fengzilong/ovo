@@ -1,3 +1,7 @@
+/dist
+/src
+/test.js
+
 # Logs
 logs
 *.log

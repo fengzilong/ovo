@@ -2,10 +2,24 @@
   "name": "ovo",
   "version": "0.0.0",
   "main": "index.js",
+  "scripts": {
+    "dist": "bili ./src/index.js -d dist -n ovo --format umd --module-name ovo --compress",
+    "dev": "nodemon -x \"npm run dist\" --watch src",
+    "lint": "eslint src"
+  },
+  "eslintConfig": {
+    "extends": "mo/esnext"
+  },
   "repository": {
     "url": "git@github.com:fengzilong/ovo.git",
     "type": "git"
   },
   "author": "mo <feng_zilong@163.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "bili": "^0.8.0",
+    "eslint": "^3.11.1",
+    "eslint-config-mo": "^0.0.2",
+    "onchange": "^3.2.0"
+  }
 }
