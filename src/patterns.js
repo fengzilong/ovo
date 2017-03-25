@@ -12,7 +12,7 @@ export default {
 	// Mustache
 	MUSTACHE_OPEN: compile( /^{{BEGIN}}#({{IDENT}})\s*/ ),
 	MUSTACHE_END: compile( /^{{END}}/ ),
-	MUSTACHE_CLOSE: compile( /^{{BEGIN}}\/{{IDENT}}{{END}}/ ),
+	MUSTACHE_CLOSE: compile( /^{{BEGIN}}\/({{IDENT}}){{END}}/ ),
 	MUSTACHE_EXPRESSION_OPEN: compile( /^{{BEGIN}}/ ),
 	MUSTACHE_EXPRESSION_IDENT: compile( /^({{IDENT}})/ ),
 	MUSTACHE_EXPRESSION_NUMBER: /^((?:\d*\.\d+|\d+)(?:e\d+)?)/,
@@ -24,6 +24,5 @@ export default {
 	// Others
 	TEXT: /^[^\x00]/,
 	SPACE: /^\s+/,
-	EOS: /^$/,
 };
 /* eslint-enable */
