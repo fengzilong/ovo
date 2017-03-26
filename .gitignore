@@ -1,8 +1,4 @@
 /dist
-/src/*.js
-!/src/regexp/*
-!/src/patterns.js
-!/src/token.js
 /test.js
 
 # Logs
