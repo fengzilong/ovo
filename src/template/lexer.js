@@ -1,7 +1,9 @@
-import State from './state';
-import Token from './token';
+import State from '../shared/state';
+import Token from '../shared/token';
+import LexerError from '../shared/error/LexerError';
 import patterns from './patterns';
-import LexerError from './error/lexer';
+
+const hasOwn = Object.hasOwnProperty;
 
 export default class Lexer {
 	constructor( source = '', options = {} ) {
@@ -15,15 +17,17 @@ export default class Lexer {
 		};
 		this.state = new State();
 	}
+
 	next() {
 		const token = this.stashed() || this.advance();
 		return token;
 	}
+
 	advance() {
 		const startPos = this.pos;
 		const token = (
 			this.eos() ||
-			this.space() ||
+			this.whitespace() ||
 			this.tagOpen() ||
 			this.tagEnd() ||
 			this.tagClose() ||
@@ -43,12 +47,14 @@ export default class Lexer {
 
 		return token;
 	}
+
 	skip( len ) {
 		const chunk = len[ 0 ];
 		len = chunk ? chunk.length : len;
 		this.tail = this.tail.substr( len );
 		this.pos = this.pos + len;
 	}
+
 	stashed() {
 		return this.stash.shift();
 	}
@@ -58,9 +64,11 @@ export default class Lexer {
 		}
 		return patterns[ type ].exec( this.tail );
 	}
+
 	peek() {
 		return this.lookahead( 1 );
 	}
+
 	lookahead( n ) {
 		let fetch = n - this.stash.length;
 		while ( fetch-- > 0 ) {
@@ -68,18 +76,18 @@ export default class Lexer {
 		}
 		return this.stash[ --n ];
 	}
+
 	error( ...args ) {
 		console.log( ...args );
 		throw new LexerError( 'LexerError' );
 	}
+
 	comment() {
 		const captures = this.match( 'TAG_COMMENT' );
 		if ( captures ) {
 			this.skip( captures );
 			const content = captures[ 1 ];
-			return new Token( 'comment', {
-				content: content,
-			} );
+			return new Token( 'comment', { content } );
 		}
 	}
 	tagOpen() {
@@ -112,9 +120,9 @@ export default class Lexer {
 		if ( captures ) {
 			this.skip( captures );
 			this.state.leave( 'tagOpen' );
-			const isSelfClose = !!captures[ 1 ];
+			const isSelfClosed = Boolean( captures[ 1 ] );
 			return new Token( 'tagEnd', {
-				isSelfClose,
+				isSelfClosed,
 			} );
 		}
 	}
@@ -128,7 +136,6 @@ export default class Lexer {
 			} );
 		}
 	}
-
 	// mustache
 	mustacheOpen() {
 		const captures = this.match( 'MUSTACHE_OPEN' );
@@ -151,7 +158,9 @@ export default class Lexer {
 			// reset marker
 			const marker = this.marker;
 			for ( const i in marker ) {
-				marker[ i ] = 0;
+				if ( hasOwn.call( marker, i ) ) {
+					marker[ i ] = 0;
+				}
 			}
 			return new Token( 'mustacheEnd' );
 		}
@@ -164,7 +173,6 @@ export default class Lexer {
 			return new Token( 'mustacheClose', name );
 		}
 	}
-
 	// interpolation
 	interpolationOpen() {
 		// skip when staying in tagOpen and mustacheOpen state
@@ -250,15 +258,15 @@ export default class Lexer {
 			if ( this.marker.brace >= 0 ) {
 				this.skip( captures );
 				return new Token( 'symbol', symbol );
-			} else {
-				// try to match mustacheEnd
-				const token = this.mustacheEnd();
-				if ( token && token.type === 'mustacheEnd' ) {
-					return token;
-				} else {
-					this.error( 'Unexpected }' )
-				}
 			}
+
+			// try to match mustacheEnd
+			const token = this.mustacheEnd();
+			if ( token && token.type === 'mustacheEnd' ) {
+				return token;
+			}
+
+			this.error( 'Unexpected }' );
 		}
 	}
 
@@ -274,11 +282,12 @@ export default class Lexer {
 			return new Token( 'text', text );
 		}
 	}
-	space() {
-		const captures = this.match( 'SPACE' );
+
+	whitespace() {
+		const captures = this.match( 'WHITESPACE' );
 		if ( captures ) {
 			this.skip( captures );
-			return new Token( 'space' );
+			return new Token( 'whitespace' );
 		}
 	}
 	eos() {

@@ -8,7 +8,10 @@
     "lint": "eslint src"
   },
   "eslintConfig": {
-    "extends": "mo/esnext"
+    "extends": "mo/esnext",
+    "rules": {
+      "no-implicit-coercion": [ "error", { "allow": [ "~" ] } ]
+    }
   },
   "repository": {
     "url": "git@github.com:fengzilong/ovo.git",
