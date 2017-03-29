@@ -1,6 +1,6 @@
 export default function () {
 	return {
-		type: 'Expression',
-		body: '',
+		type: 'BlockStatement',
+		body: [],
 	};
 }

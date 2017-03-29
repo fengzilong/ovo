@@ -94,11 +94,9 @@ export default class Lexer {
 		const captures = this.match( 'TAG_OPEN' );
 		if ( captures ) {
 			this.skip( captures );
-			const tagname = captures[ 1 ];
+			const name = captures[ 1 ];
 			this.state.enter( 'tagOpen' );
-			return new Token( 'tagOpen', {
-				name: tagname,
-			} );
+			return new Token( 'tagOpen', { name } );
 		}
 	}
 	attribute() {
