@@ -25,6 +25,7 @@ export default class Parser {
 		this.skip( [ 'whitespace' ] );
 	}
 
+	// 预测
 	accept( type ) {
 		if ( this.peek().type === type ) {
 			return this.next();
@@ -50,14 +51,14 @@ export default class Parser {
 		}
 	}
 
-	// distribute
+	// distribute, which means from statement to `leaf`
 	statement() {
 		const type = this.peek().type;
 
-		this.next();
-
 		/* eslint-disable */
 		switch ( type ) {
+			case 'text':
+				return this.text();
 			case 'tagOpen':
 				return this.tag();
 			case 'mustacheOpen':
@@ -70,12 +71,63 @@ export default class Parser {
 		/* eslint-enable */
 	}
 
-	tag() {
-		console.log( `tag` );
+	text() {
+		const token = this.next();
+		console.log( token.value );
+		return {
+			type: 'text',
+			value: token.value,
+		};
 	}
 
+	tag() {
+		const token = this.next();
+		console.log( `tag`, token.value.name );
+	}
+
+	// {#directive expr}{/directive}, such as if, list
 	directive() {
-		console.log( `directive` );
+		const token = this.accept( 'mustacheOpen' );
+		switch( token.value ) {
+			case 'if':
+				return this.if();
+			case 'list':
+				return this.list();
+			default:
+				this.error( 'Unexpect' );
+		}
+	}
+	[ 'if' ]() {
+		const consequent = [];
+		const alternate = [];
+
+		// match following expression
+		const expression = this.expression();
+		// expect a mustacheEnd
+		this.accept( 'mustacheEnd' );
+		// find corresponding `{#else` and `{#elseif`
+		while ( this.peek().type !== 'mustacheClose' ) {
+			const token = this.next();
+			if ( token.type === 'mustacheOpen' ) {
+				switch( token.value ) {
+					case 'elseif':
+
+						break;
+					case 'else':
+
+						break;
+					default:
+						
+						break;
+				}
+			}
+		}
+	}
+	list() {
+
+	}
+	expression() {
+
 	}
 
 	interpolation() {

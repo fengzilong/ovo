@@ -10,7 +10,14 @@
   "eslintConfig": {
     "extends": "mo/esnext",
     "rules": {
-      "no-implicit-coercion": [ "error", { "allow": [ "~" ] } ]
+      "no-implicit-coercion": [
+        "error",
+        {
+          "allow": [
+            "~"
+          ]
+        }
+      ]
     }
   },
   "repository": {
@@ -23,6 +30,7 @@
     "bili": "^0.8.0",
     "eslint": "^3.11.1",
     "eslint-config-mo": "^0.0.2",
+    "nodemon": "^1.11.0",
     "onchange": "^3.2.0"
   }
 }
