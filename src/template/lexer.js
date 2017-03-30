@@ -19,8 +19,7 @@ export default class Lexer {
 	}
 
 	next() {
-		const token = this.stashed() || this.advance();
-		return token;
+		return this.stashed() || this.advance();
 	}
 
 	advance() {
@@ -35,7 +34,7 @@ export default class Lexer {
 			this.mustacheOpen() ||
 			this.mustacheClose() ||
 			this.interpolationOpen() ||
-			// expression should be replaced after `enter state mustacheOpen`
+			// expression should be placed after `enter state mustacheOpen`
 			this.expression() ||
 			this.comment() ||
 			this.text()

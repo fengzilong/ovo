@@ -13,7 +13,7 @@ export default class Parser {
 	}
 
 	next() {
-		console.log( this.lexer.peek() );
+		console.log( this.lexer.peek().type, this.lexer.peek().frame );
 		return this.lexer.next();
 	}
 
@@ -207,7 +207,31 @@ export default class Parser {
 		return node;
 	}
 	each() {
+		const node = nodes.Each( {
+			sequence: null,
+			item: null,
+			body: [],
+		} );
 
+		// TODO: read sequence and item
+		this.expression();
+
+		this.expect( 'mustacheEnd' );
+
+		function receive( statement ) {
+			node.body.push( statement );
+		}
+
+		while ( this.peek().type !== 'mustacheClose' ) {
+			receive( this.statement() );
+		}
+
+		const token = this.expect( 'mustacheClose' );
+		if ( token.value !== 'each' ) {
+			this.error( 'unmatched each' );
+		}
+
+		return node;
 	}
 	expression() {
 		const tokens = [];
@@ -221,6 +245,7 @@ export default class Parser {
 				this.accept( 'symbol' )
 			)
 		) {
+			this.skipWhitespace();
 			tokens.push( token );
 		}
 
