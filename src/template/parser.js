@@ -63,7 +63,7 @@ export default class Parser {
 		return program;
 	}
 
-	// multiple statements, like `text + tag + text`, we should gather them as an array
+	// multiple statements, like `text + tag + text`, we should gather them in an array
 	// use eos and tagClose as boundary, when we encounter extra tagClose token, it should be a endpoint for parent invoking
 	statements() {
 		const root = [];
@@ -74,14 +74,13 @@ export default class Parser {
 				break;
 			}
 
-			// gather statements
 			const statement = this.statement();
 			root.push( statement );
 		}
 		return root;
 	}
 
-	// distribute, which means from statement to `leaf`
+	// distribute
 	statement() {
 		const type = this.peek().type;
 
@@ -103,7 +102,16 @@ export default class Parser {
 	}
 
 	text() {
-		return nodes.Text( this.next().value );
+		let token;
+		let str = '';
+
+		while ( token = (
+			this.accept( 'text' ) || this.accept( 'whitespace' )
+		) ) {
+			str += token.value;
+		}
+		
+		return nodes.Text( str );
 	}
 
 	tag() {

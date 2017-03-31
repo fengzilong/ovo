@@ -16,6 +16,7 @@ export default class Lexer {
 			brace: 0,
 		};
 		this.state = new State();
+		// this.state.enter( 'data' );
 	}
 
 	next() {
@@ -284,7 +285,8 @@ export default class Lexer {
 		const captures = this.match( 'WHITESPACE' );
 		if ( captures ) {
 			this.skip( captures );
-			return new Token( 'whitespace' );
+			const whitespace = captures[ 0 ];
+			return new Token( 'whitespace', whitespace );
 		}
 	}
 	eos() {
