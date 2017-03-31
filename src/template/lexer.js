@@ -16,7 +16,7 @@ export default class Lexer {
 			brace: 0,
 		};
 		this.state = new State();
-		// this.state.enter( 'data' );
+		this.state.enter( 'data' );
 	}
 
 	next() {
