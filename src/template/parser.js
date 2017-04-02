@@ -47,7 +47,6 @@ export default class Parser {
 	}
 
 	error( message ) {
-		console.log( message );
 		throw new ParserError( message );
 	}
 
@@ -82,7 +81,8 @@ export default class Parser {
 
 	// distribute
 	statement() {
-		const type = this.peek().type;
+		const token = this.peek();
+		const type = token.type;
 
 		/* eslint-disable */
 		switch ( type ) {
@@ -95,8 +95,10 @@ export default class Parser {
 				return this.directive();
 			case 'interpolationOpen':
 				return this.interpolation();
+			case 'comment':
+				return this.next();
 			default:
-				return this.error( `Unexpected token ${ type }` );
+				return this.error( `[statement] Unexpected token ${ type }, code frame: ${ token.frame }` );
 		}
 		/* eslint-enable */
 	}
@@ -110,7 +112,7 @@ export default class Parser {
 		) ) {
 			str += token.value;
 		}
-		
+
 		return nodes.Text( str );
 	}
 
@@ -124,12 +126,15 @@ export default class Parser {
 			node.attributes[ token.value.name ] = token.value.value;
 		}
 
-		this.accept( 'tagEnd' );
-		node.children = this.statements();
-		const closeToken = this.accept( 'tagClose' );
+		const tagEndToken = this.expect( 'tagEnd' );
 
-		if ( closeToken.value.name !== node.name ) {
-			this.error( `Unmatched close tag for ${ node.name }` );
+		if ( !tagEndToken.value.isSelfClosed ) {
+			node.children = this.statements();
+
+			const closeToken = this.expect( 'tagClose' );
+			if ( closeToken.value.name !== node.name ) {
+				this.error( `Unmatched close tag for ${ node.name }` );
+			}
 		}
 
 		return node;
@@ -205,7 +210,7 @@ export default class Parser {
 			}
 		}
 
-		const mustacheCloseToken = this.accept( 'mustacheClose' );
+		const mustacheCloseToken = this.expect( 'mustacheClose' );
 
 		// maybe {/each}? it's not what we want
 		if ( mustacheCloseToken.value !== 'if' ) {
@@ -244,6 +249,8 @@ export default class Parser {
 	expression() {
 		const tokens = [];
 		let token;
+
+		this.skipWhitespace();
 
 		while (
 			token = (
