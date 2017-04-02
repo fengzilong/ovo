@@ -1,6 +1,7 @@
 import Lexer from './lexer';
 import nodes from './nodes';
 import ParserError from '../shared/error/ParserError';
+import { isSelfClosedTag } from '../utils/is';
 
 export default class Parser {
 	constructor( source = '', options = {} ) {
@@ -74,7 +75,9 @@ export default class Parser {
 			}
 
 			const statement = this.statement();
-			root.push( statement );
+			if ( statement ) {
+				root.push( statement );
+			}
 		}
 		return root;
 	}
@@ -82,10 +85,9 @@ export default class Parser {
 	// distribute
 	statement() {
 		const token = this.peek();
-		const type = token.type;
 
 		/* eslint-disable */
-		switch ( type ) {
+		switch ( token.type ) {
 			case 'whitespace':
 			case 'text':
 				return this.text();
@@ -96,9 +98,10 @@ export default class Parser {
 			case 'interpolationOpen':
 				return this.interpolation();
 			case 'comment':
-				return this.next();
+				this.next();
+				return;
 			default:
-				return this.error( `[statement] Unexpected token ${ type }, code frame: ${ token.frame }` );
+				return this.error( `[statement] Unexpected token ${ token.type }, code frame: ${ token.frame }` );
 		}
 		/* eslint-enable */
 	}
@@ -128,13 +131,16 @@ export default class Parser {
 
 		const tagEndToken = this.expect( 'tagEnd' );
 
-		if ( !tagEndToken.value.isSelfClosed ) {
-			node.children = this.statements();
+		// ends with `/>` or matches self-closed tags defined in w3c
+		if ( tagEndToken.value.isSelfClosed || isSelfClosedTag( node.name ) ) {
+			return node;
+		}
 
-			const closeToken = this.expect( 'tagClose' );
-			if ( closeToken.value.name !== node.name ) {
-				this.error( `Unmatched close tag for ${ node.name }` );
-			}
+		node.children = this.statements() || [];
+
+		const closeToken = this.expect( 'tagClose' );
+		if ( closeToken.value.name !== node.name ) {
+			this.error( `Unmatched close tag for ${ node.name }` );
 		}
 
 		return node;
@@ -167,7 +173,9 @@ export default class Parser {
 			let receiver;
 
 			function receive( statement ) {
-				receiver.body.push( statement );
+				if ( statement ) {
+					receiver.body.push( statement );
+				}
 			}
 
 			function changeReceiver( newReceiver ) {
@@ -232,7 +240,9 @@ export default class Parser {
 		this.expect( 'mustacheEnd' );
 
 		function receive( statement ) {
-			node.body.push( statement );
+			if ( statement ) {
+				node.body.push( statement );
+			}
 		}
 
 		while ( this.peek().type !== 'mustacheClose' ) {
