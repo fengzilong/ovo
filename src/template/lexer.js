@@ -2,6 +2,7 @@ import State from '../shared/state';
 import Token from '../shared/token';
 import LexerError from '../shared/error/LexerError';
 import patterns from './patterns';
+import getCodeFrame from '../utils/getCodeFrame';
 
 const hasOwn = Object.hasOwnProperty;
 
@@ -25,7 +26,7 @@ export default class Lexer {
 
 	advance() {
 		const startPos = this.pos;
-		const token = (
+		const token =
 			this.eos() ||
 			this.whitespace() ||
 			this.tagOpen() ||
@@ -38,8 +39,7 @@ export default class Lexer {
 			// expression should be placed after `enter state mustacheOpen`
 			this.expression() ||
 			this.comment() ||
-			this.text()
-		);
+			this.text();
 		const endPos = this.pos;
 
 		token.pos = startPos;
@@ -78,8 +78,12 @@ export default class Lexer {
 	}
 
 	error( ...args ) {
+		const codeframe = getCodeFrame( this.source, this.pos );
 		console.log( ...args );
-		throw new LexerError( 'LexerError' );
+		console.log( codeframe );
+		throw new LexerError( {
+			codeframe,
+		} );
 	}
 
 	comment() {
@@ -233,10 +237,7 @@ export default class Lexer {
 	}
 	// { | }
 	brace() {
-		return (
-			this.braceOpen() ||
-			this.braceEnd()
-		);
+		return this.braceOpen() || this.braceEnd();
 	}
 	braceOpen() {
 		const captures = this.match( 'MUSTACHE_EXPRESSION_BRACE_OPEN' );

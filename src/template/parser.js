@@ -1,6 +1,7 @@
 import Lexer from './lexer';
 import nodes from './nodes';
 import ParserError from '../shared/error/ParserError';
+import getCodeFrame from '../utils/getCodeFrame';
 
 export default class Parser {
 	constructor( source = '', options = {} ) {
@@ -37,11 +38,13 @@ export default class Parser {
 
 	// enhanced `this.next()`, with assert
 	expect( type ) {
-		const token = this.accept( type );
-
-		if ( token ) {
-			return token;
+		const token = this.peek();
+		if ( token.type === type ) {
+			return this.next();
 		}
+
+		const codeframe = getCodeFrame( this.source, token.pos );
+		console.log( codeframe );
 
 		this.error( `Expect ${ type }, but got ${ token.type }` );
 	}
@@ -85,7 +88,7 @@ export default class Parser {
 		const type = this.peek().type;
 
 		/* eslint-disable */
-		switch ( type ) {
+		switch (type) {
 			case 'whitespace':
 			case 'text':
 				return this.text();
@@ -96,7 +99,7 @@ export default class Parser {
 			case 'interpolationOpen':
 				return this.interpolation();
 			default:
-				return this.error( `Unexpected token ${ type }` );
+				return this.error(`Unexpected token ${type}`);
 		}
 		/* eslint-enable */
 	}
@@ -105,18 +108,16 @@ export default class Parser {
 		let token;
 		let str = '';
 
-		while ( token = (
-			this.accept( 'text' ) || this.accept( 'whitespace' )
-		) ) {
+		while ( ( token = this.accept( 'text' ) || this.accept( 'whitespace' ) ) ) {
 			str += token.value;
 		}
-		
+
 		return nodes.Text( str );
 	}
 
 	tag() {
 		const node = nodes.Tag( {
-			name: this.next().value.name
+			name: this.next().value.name,
 		} );
 
 		while ( this.peek().type !== 'tagEnd' && this.peek().type !== 'eos' ) {
@@ -138,16 +139,16 @@ export default class Parser {
 	// {#directive expr}{/directive}, such as if, list
 	directive() {
 		const token = this.accept( 'mustacheOpen' );
-		switch( token.value ) {
-			case 'if':
-				return this.if();
-			case 'each':
-				return this.each();
-			default:
-				this.error( `Unexpected directive ${ token.value }` );
+		switch ( token.value ) {
+		case 'if':
+			return this.if();
+		case 'each':
+			return this.each();
+		default:
+			this.error( `Unexpected directive ${ token.value }` );
 		}
 	}
-	[ 'if' ]() {
+	['if']() {
 		const node = nodes.If( {
 			test: this.expression(), // match expression as `test`
 			consequent: null, // set it later
@@ -155,10 +156,7 @@ export default class Parser {
 		} );
 
 		// for BlockStatement
-		const {
-			receive,
-			changeReceiver
-		} = ( function () {
+		const { receive, changeReceiver } = ( function () {
 			let receiver;
 
 			function receive( statement ) {
@@ -173,7 +171,7 @@ export default class Parser {
 		} )();
 
 		// obviously consequent will be default receiver at first, until we meet `else`
-		changeReceiver( node.consequent = nodes.Block() );
+		changeReceiver( ( node.consequent = nodes.Block() ) );
 
 		// expect a mustacheEnd
 		this.accept( 'mustacheEnd' );
@@ -184,21 +182,21 @@ export default class Parser {
 			const token = this.peek();
 
 			if ( token.type === 'mustacheOpen' ) {
-				switch( token.value ) {
-					case 'elseif':
+				switch ( token.value ) {
+				case 'elseif':
 						// continue reading `IfStatement` into alternate
-						this.next();
-						node.alternate = this.if();
-						break;
-					case 'else':
+					this.next();
+					node.alternate = this.if();
+					break;
+				case 'else':
 						// now receiver is changed to alternate
-						this.next();
-						this.accept( 'mustacheEnd' );
-						changeReceiver( node.alternate = nodes.Block() );
-						break;
-					default:
-						receive( this.statement() );
-						break;
+					this.next();
+					this.accept( 'mustacheEnd' );
+					changeReceiver( ( node.alternate = nodes.Block() ) );
+					break;
+				default:
+					receive( this.statement() );
+					break;
 				}
 			} else {
 				receive( this.statement() );
@@ -246,19 +244,18 @@ export default class Parser {
 		let token;
 
 		while (
-			token = (
+			( token =
 				this.accept( 'ident' ) ||
 				this.accept( 'string' ) ||
 				this.accept( 'number' ) ||
-				this.accept( 'symbol' )
-			)
+				this.accept( 'symbol' ) )
 		) {
 			this.skipWhitespace();
 			tokens.push( token );
 		}
 
 		return nodes.Expression( {
-			value: 'expression'
+			value: 'expression',
 		} );
 	}
 
@@ -270,6 +267,5 @@ export default class Parser {
 		this.accept( 'mustacheEnd' );
 
 		return node;
-
 	}
 }

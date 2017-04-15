@@ -31,6 +31,10 @@
     "eslint": "^3.11.1",
     "eslint-config-mo": "^0.0.2",
     "nodemon": "^1.11.0",
-    "onchange": "^3.2.0"
+    "onchange": "^3.2.0",
+    "locate-character": "^2.0.0"
+  },
+  "dependencies": {
+
   }
 }
