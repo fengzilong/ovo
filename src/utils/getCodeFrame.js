@@ -22,8 +22,6 @@ function getCodeFrame( source, index ) {
 	} );
 	const { line, column } = locate( index );
 
-	console.log( line, column );
-
 	let lines = source.split( '\n' );
 
 	const frameStart = Math.max( 0, line - 3 );
