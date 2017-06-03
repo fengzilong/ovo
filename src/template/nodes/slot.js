@@ -1,5 +1,3 @@
-export default class Slot {
-	constructor() {
-		
-	}
+export default function () {
+	return {};
 }
