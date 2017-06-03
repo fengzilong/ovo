@@ -1,8 +1,8 @@
 import Lexer from './lexer';
 import nodes from './nodes';
 import ParserError from '../shared/error/ParserError';
-import { isSelfClosedTag } from '../utils/is';
-import getCodeFrame from '../utils/getCodeFrame';
+import { isSelfClosedTag } from '../shared/is';
+import getCodeFrame from '../shared/getCodeFrame';
 
 export default class Parser {
 	constructor( source = '', options = {} ) {

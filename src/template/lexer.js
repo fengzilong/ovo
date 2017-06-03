@@ -2,7 +2,7 @@ import State from '../shared/state';
 import Token from '../shared/token';
 import LexerError from '../shared/error/LexerError';
 import patterns from './patterns';
-import getCodeFrame from '../utils/getCodeFrame';
+import getCodeFrame from '../shared/getCodeFrame';
 
 const hasOwn = Object.hasOwnProperty;
 
