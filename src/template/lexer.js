@@ -1,12 +1,12 @@
 import State from '../shared/state';
 import Token from '../shared/token';
 import LexerError from '../shared/error/LexerError';
-import patterns from './patterns';
 import getCodeFrame from '../shared/getCodeFrame';
+import patterns from './patterns';
 
 const hasOwn = Object.hasOwnProperty;
 
-export default class Lexer {
+export default class TemplateLexer {
 	constructor( source = '', options = {} ) {
 		this.source = source;
 		this.tail = source;
@@ -20,12 +20,52 @@ export default class Lexer {
 		this.state.enter( 'data' );
 	}
 
+	stashed() {
+		return this.stash.shift();
+	}
+
+	lookahead( n ) {
+		let fetch = n - this.stash.length;
+		while ( fetch-- > 0 ) {
+			this.stash.push( this.advance() );
+		}
+		return this.stash[ --n ];
+	}
+
+	peek() {
+		return this.lookahead( 1 );
+	}
+
 	next() {
 		return this.stashed() || this.advance();
 	}
 
+	match( type ) {
+		if ( !patterns[ type ] ) {
+			return;
+		}
+		return patterns[ type ].exec( this.tail );
+	}
+
+	skip( len ) {
+		const chunk = len[ 0 ];
+		len = chunk ? chunk.length : len;
+		this.tail = this.tail.substr( len );
+		this.pos = this.pos + len;
+	}
+
+	error( ...args ) {
+		const codeframe = getCodeFrame( this.source, this.pos );
+		console.log( ...args );
+		console.log( codeframe );
+		throw new LexerError( {
+			codeframe,
+		} );
+	}
+
 	advance() {
 		const startPos = this.pos;
+
 		const token =
 			this.eos() ||
 			this.whitespace() ||
@@ -40,50 +80,13 @@ export default class Lexer {
 			this.expression() ||
 			this.comment() ||
 			this.text();
+
 		const endPos = this.pos;
 
 		token.pos = startPos;
 		token.frame = this.source.slice( startPos, endPos );
 
 		return token;
-	}
-
-	skip( len ) {
-		const chunk = len[ 0 ];
-		len = chunk ? chunk.length : len;
-		this.tail = this.tail.substr( len );
-		this.pos = this.pos + len;
-	}
-
-	stashed() {
-		return this.stash.shift();
-	}
-	match( type ) {
-		if ( !patterns[ type ] ) {
-			return;
-		}
-		return patterns[ type ].exec( this.tail );
-	}
-
-	peek() {
-		return this.lookahead( 1 );
-	}
-
-	lookahead( n ) {
-		let fetch = n - this.stash.length;
-		while ( fetch-- > 0 ) {
-			this.stash.push( this.advance() );
-		}
-		return this.stash[ --n ];
-	}
-
-	error( ...args ) {
-		const codeframe = getCodeFrame( this.source, this.pos );
-		console.log( ...args );
-		console.log( codeframe );
-		throw new LexerError( {
-			codeframe,
-		} );
 	}
 
 	comment() {
@@ -290,6 +293,7 @@ export default class Lexer {
 			return new Token( 'whitespace', whitespace );
 		}
 	}
+
 	eos() {
 		if ( this.tail.length > 0 ) {
 			return;

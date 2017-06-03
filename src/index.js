@@ -1,3 +1,3 @@
-import Parser from './template/parser';
+import Parser from './expression/parser';
 
 export default Parser;

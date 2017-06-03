@@ -4,7 +4,7 @@ import ParserError from '../shared/error/ParserError';
 import { isSelfClosedTag } from '../shared/is';
 import getCodeFrame from '../shared/getCodeFrame';
 
-export default class Parser {
+export default class TemplateParser {
 	constructor( source = '', options = {} ) {
 		this.source = source;
 		this.options = options;
@@ -90,8 +90,9 @@ export default class Parser {
 		const token = this.peek();
 
 		/* eslint-disable */
-		switch (token.type) {
+		switch ( token.type ) {
 			case 'whitespace':
+				break;
 			case 'text':
 				return this.text();
 			case 'tagOpen':
