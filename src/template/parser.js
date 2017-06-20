@@ -1,8 +1,8 @@
 import Lexer from './lexer';
 import nodes from './nodes';
 import ParserError from '../shared/error/ParserError';
-import { isSelfClosedTag } from '../shared/is';
 import getCodeFrame from '../shared/getCodeFrame';
+import { isSelfClosedTag } from '../shared/is';
 
 export default class TemplateParser {
 	constructor( source = '', options = {} ) {
@@ -29,7 +29,7 @@ export default class TemplateParser {
 		this.skip( [ 'whitespace' ] );
 	}
 
-	// simple assert, if matched, return
+	// quick match, if matched, return
 	accept( type ) {
 		const token = this.peek();
 		if ( token.type === type ) {
@@ -37,7 +37,7 @@ export default class TemplateParser {
 		}
 	}
 
-	// enhanced `this.next()`, with assert
+	// enhanced `this.next()`, with error reporting
 	expect( type ) {
 		const token = this.peek();
 		if ( token.type === type ) {

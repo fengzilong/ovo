@@ -64,6 +64,10 @@ export default class ExpressionLexer {
 		const token =
 			this.eos() ||
 			this.whitespace() ||
+			this.string() ||
+			this.ident() ||
+			this.number() ||
+			this.symbol() ||
 			this.unknown()
 			;
 
@@ -71,6 +75,11 @@ export default class ExpressionLexer {
 
 		token.pos = startPos;
 		token.frame = this.source.slice( startPos, endPos );
+
+		// ignore whitespace
+		if ( token.type === 'whitespace' ) {
+			return this.advance();
+		}
 
 		return token;
 	}
@@ -92,20 +101,40 @@ export default class ExpressionLexer {
 		}
 	}
 
-	name() {
-
-	}
-
-	number() {
-
+	ident() {
+		const captures = this.match( 'IDENT' );
+		if ( captures ) {
+			this.skip( captures );
+			const ident = captures[ 0 ];
+			return new Token( 'ident', ident );
+		}
 	}
 
 	string() {
-
+		const captures = this.match( 'STRING' );
+		if ( captures ) {
+			this.skip( captures );
+			const str = captures[ 2 ];
+			return new Token( 'string', str );
+		}
 	}
 
-	operator() {
+	number() {
+		const captures = this.match( 'NUMBER' );
+		if ( captures ) {
+			this.skip( captures );
+			const num = captures[ 0 ];
+			return new Token( 'number', num );
+		}
+	}
 
+	symbol() {
+		const captures = this.match( 'SYMBOL' );
+		if ( captures ) {
+			this.skip( captures );
+			const symbol = captures[ 1 ];
+			return new Token( symbol, symbol );
+		}
 	}
 
 	unknown() {
