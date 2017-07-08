@@ -7,7 +7,7 @@ import patterns from './patterns';
 export default class ExpressionLexer {
 	constructor( source = '', options = {} ) {
 		this.source = source;
-		this.tail = source;
+		this.rest = source;
 		this.options = options || {};
 		this.stash = [];
 		this.pos = 0;
@@ -39,13 +39,13 @@ export default class ExpressionLexer {
 		if ( !patterns[ type ] ) {
 			return;
 		}
-		return patterns[ type ].exec( this.tail );
+		return patterns[ type ].exec( this.rest );
 	}
 
 	skip( len ) {
 		const chunk = len[ 0 ];
 		len = chunk ? chunk.length : len;
-		this.tail = this.tail.substr( len );
+		this.rest = this.rest.substr( len );
 		this.pos = this.pos + len;
 	}
 
@@ -85,7 +85,7 @@ export default class ExpressionLexer {
 	}
 
 	eos() {
-		if ( this.tail.length > 0 ) {
+		if ( this.rest.length > 0 ) {
 			return;
 		}
 
